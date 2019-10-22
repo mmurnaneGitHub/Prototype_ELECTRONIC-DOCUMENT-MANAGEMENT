@@ -1,4 +1,4 @@
-# Prototype_-ELECTRONIC-DOCUMENT-MANAGEMENT-
+# Prototype_ELECTRONIC-DOCUMENT-MANAGEMENT
 Accela/CivicData Permits can polygon areas for storage of long range planning projects with these tools.
 
 Select Widget (Widget_Select.js):
