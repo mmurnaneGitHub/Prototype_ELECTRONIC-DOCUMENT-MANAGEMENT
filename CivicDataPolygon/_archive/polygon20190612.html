@@ -1,0 +1,67 @@
+<!DOCTYPE html>  
+<html>  
+  
+<head>  
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">  
+  
+  <meta name="viewport" content="initial-scale=1, maximum-scale=1,user-scalable=no">  
+  <title>Shapes and Symbols</title>  
+  
+  <link rel="stylesheet" href="https://js.arcgis.com/3.28/esri/css/esri.css">  
+  
+  <style>  
+    html,  
+    body,  
+    #map{  
+      padding: 0;  
+      margin: 0;  
+      height: 100%;  
+    }  
+  </style>  
+  
+  <script src="https://js.arcgis.com/3.28/"></script>  
+  <script>  
+      var map;
+      require([
+        "esri/map",
+        "esri/graphic",
+        "esri/geometry/Extent",
+        "esri/layers/FeatureLayer",
+        "esri/symbols/SimpleLineSymbol",
+        "esri/symbols/SimpleFillSymbol",
+        "esri/symbols/TextSymbol",
+        "esri/renderers/SimpleRenderer",
+        "esri/geometry/Polygon",
+        "esri/layers/GraphicsLayer",
+        "esri/layers/LabelClass",
+        "dojo/_base/Color",
+        "dojo/domReady!"
+      ], function (Map, Graphic, Extent, FeatureLayer, SimpleLineSymbol, SimpleFillSymbol,
+        TextSymbol, SimpleRenderer, Polygon, GraphicsLayer, LabelClass, Color) {
+
+          map = new Map("map", {
+            basemap: "gray",
+            center: [-122.459963, 47.230583],
+            zoom: 12
+          });
+          var graphicLayer = new GraphicsLayer();
+          map.addLayer(graphicLayer);  //add empty graphic layer to map
+
+          var theCoordinates = [[-122.494442, 47.242775], [-122.498401, 47.242826], [-122.498423, 47.240174], [-122.496674, 47.240160], [-122.496760, 47.241238], [-122.494131, 47.241296], [-122.494442, 47.242775]];
+          var thePolygon = new Polygon(theCoordinates);
+          var thePolygonGraphic = new Graphic(thePolygon, new SimpleFillSymbol());
+
+          graphicLayer.add(thePolygonGraphic);  //add element to graphic layer
+
+        });
+
+    //SEE https://community.esri.com/message/573328
+       
+  </script>  
+</head>  
+  
+<body>  
+  <div id="map"></div>  
+</body>  
+  
+</html>  

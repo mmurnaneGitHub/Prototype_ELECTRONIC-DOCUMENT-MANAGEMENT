@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
+  <title>FeatureLayer</title>
+
+  <link rel="stylesheet" href="https://js.arcgis.com/3.24/esri/css/esri.css">
+  <script src="https://js.arcgis.com/3.24/"></script>
+
+  <style>
+    html,
+    body,
+    #map {
+      padding: 0;
+      margin: 0;
+      height: 100%;
+      width: 100%;
+    }
+  </style>
+
+  <script>
+    require([
+      "esri/map",
+      "esri/symbols/SimpleMarkerSymbol",
+      "esri/Color",
+      "esri/renderers/SimpleRenderer",
+      "esri/symbols/SimpleFillSymbol",
+      "esri/symbols/SimpleLineSymbol",
+      "esri/tasks/FeatureSet",
+      "esri/layers/FeatureLayer",
+      "esri/request",
+      "esri/geometry/Polygon",
+      "esri/graphic",
+      "dojo/on",
+      "dojo/_base/array",
+      "dojo/domReady!"
+    ], function(
+      Map, SimpleMarkerSymbol, Color, SimpleRenderer, SimpleFillSymbol, SimpleLineSymbol,
+      FeatureSet, FeatureLayer, esriRequest, Polygon, Graphic, on, array
+    ) {
+
+      var map = new Map("map", {
+        basemap: "streets",
+        center: [-122.494452, 47.242776],
+        zoom: 16
+      });
+
+      var sfs = new SimpleFillSymbol(SimpleFillSymbol.STYLE_SOLID,
+        new SimpleLineSymbol(SimpleLineSymbol.STYLE_DASHDOT,
+        new Color([255, 0, 0]), 2), new Color([255, 255, 0, 0.25])
+      );
+ 
+      //var sfs = new SimpleFillSymbol();  //not working
+
+      //Original - https://community.esri.com/message/782875-re-add-local-geojson-file-to-map?commentID=782875#comment-782875
+      
+      // First we create an empty feature collection:
+      var featureCollection = {
+        "layerDefinition": null,
+        "featureSet": {
+          "features": [],
+          "geometryType": "esriGeometryPolygon"
+        }
+      };
+
+      //give the feature collection a layer definition:
+      featureCollection.layerDefinition = {
+        "geometryType": "esriGeometryPolygon",
+        "objectIdField": "ID",
+        "drawingInfo": {
+          "renderer": {
+            "type": "simple",
+            "symbol": {
+              "type": "esriSFS",
+              "style": "esriSFSSolid",
+              "color": [
+                31,
+                121,
+                180,
+                255
+              ],
+              "outline": {
+                "type": "esriSLS",
+                "style": "esriSLSSolid",
+                "color": [110, 110, 110, 255],
+                width: 0.4
+              }
+            }
+          }
+        },
+        "fields": [{
+            "name": "ID",
+            "type": "esriFieldTypeOID",
+            "alias": "ID"
+          },
+          {
+            "name": "RecordNumber",
+            "type": "esriFieldTypeString",
+            "alias": "RecordNumber",
+            "length": 10
+          }
+        ]
+      };
+      //featureCollection object is in the correct format to be passed in to a FeatureLayer:
+
+      featureLayer = new FeatureLayer(featureCollection, {
+        id: 'myFeatureLayer',
+        // fields: fields, // This is required when creating a layer from Graphics
+        //ObjectIdField: "OBJECTID", // This must be defined when creating a layer from Graphics
+        ObjectIdField: "ID", // This must be defined when creating a layer from Graphics
+        spatialReference: {
+          wkid: 4326
+        },
+        mode: FeatureLayer.MODE_ONDEMAND
+      });
+      
+        map.addLayers([featureLayer]);
+
+        function requestData() {  //Query CivicData json
+          var requestHandle = esriRequest({
+            url: "data/LongRange_TestRecords.json"
+          });
+          requestHandle.then(requestSucceeded, requestFailed);
+        }
+     
+      function requestSucceeded(response) {
+        console.error(response);
+
+        //loop through the items and add to the feature layer
+        var polyTEST = [[[-122.495607, 47.240310],[-122.498418, 47.240434],[-122.498428, 47.239224],[-122.495467, 47.239297],[-122.495607, 47.240310]]];
+        var features = [];
+
+        array.forEach(response, function(item) {
+          var attr = {};
+          //var polyTEST = [];
+          //polyTEST.push(item.Coordinates);
+          //pull in any additional attributes if required
+          attr["RecordNumber"] = item.RecordNumber;
+          var geometry = new Polygon({
+            //rings: item.Coordinates
+            //rings: [[[item.Coordinates]]]  //START HERE - HOW DO COORDS NEED O BE STRUCTURED - try adding one more bracket to coordinates
+            //rings: [[[-122.495607, 47.240310],[-122.498418, 47.240434],[-122.498428, 47.239224],[-122.495467, 47.239297],[-122.495607, 47.240310]]]  //works!!
+            rings: polyTEST  //works
+          });
+          var graphic = new Graphic(geometry);
+          graphic.setAttributes(attr);
+          features.push(graphic);
+        });
+
+        featureLayer.applyEdits(features, null, null);
+        //console.error(featureLayer);  //why run twice???
+      }
+
+      function requestFailed(error) {
+        console.log('failed');
+      }
+
+      map.addLayers([featureLayer]);
+      //map.on('layer-add-result', requestData);  //need to wait after added, BUT THIS METHOD IS BEING CALLED TWICE!!!!
+      on.once(map, 'layer-add-result', requestData);  //call just once after featureLayer added
+
+      //console.error(featureLayer);
+    });
+  </script>
+</head>
+
+<body class='claro'>
+  <div id="map"></div>
+</body>
+
+</html>

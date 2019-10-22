@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
+  <title>FeatureLayer</title>
+
+  <link rel="stylesheet" href="https://js.arcgis.com/3.24/esri/css/esri.css">
+  <script src="https://js.arcgis.com/3.24/"></script>
+
+  <style>
+    html,
+    body,
+    #map {
+      padding: 0;
+      margin: 0;
+      height: 100%;
+      width: 100%;
+    }
+  </style>
+
+  <script>
+    require([
+      "esri/map",
+      "esri/InfoTemplate",
+      "esri/symbols/SimpleMarkerSymbol",
+      "esri/Color",
+      "esri/renderers/SimpleRenderer",
+      "esri/symbols/SimpleFillSymbol",
+      "esri/symbols/SimpleLineSymbol",
+      "esri/tasks/FeatureSet",
+      "esri/layers/FeatureLayer",
+      "esri/request",
+      "esri/geometry/Polygon",
+      "esri/graphic",
+      "dojo/on",
+      "dojo/_base/array",
+      "dojo/domReady!"
+    ], function (
+      Map, InfoTemplate, SimpleMarkerSymbol, Color, SimpleRenderer, SimpleFillSymbol, SimpleLineSymbol,
+      FeatureSet, FeatureLayer, esriRequest, Polygon, Graphic, on, array
+    ) {
+
+        var map = new Map("map", {
+          basemap: "streets",
+          center: [-122.494452, 47.242776],
+          zoom: 15
+        });
+
+        var template = new InfoTemplate("Project ${RecordNumber}",
+          "<b>Application Date: </b> ${ApplicationDate}" +
+          "<br><b>Status: </b> ${RecordStatus}" +
+          "<br><b>Applicant: </b> ${Applicant}" +
+          "<br><b>ProjectName: </b> ${ProjectName}" +
+          "<br><b>Description: </b> ${Description}" +
+          "<br><b>AmendmentType: </b> ${AmendmentType}" +
+          "<br><b>PrivatePublic: </b> ${PrivatePublic}" +
+          "<br><b>More Information: </b> <a target='_blank' href='${PlanningPage}' >Planning Page</a>" +
+          "<br><b>More Information: </b> <a target='_blank' href='${ACAPage}' >ACA Page</a>" +
+          "<br><b>OridinanceNumber: </b> ${OridinanceNumber}" +
+          "<br><b>ExpectedCompletionDate: </b> ${ExpectedCompletionDate}" +
+          "<br><b>OrdinanceEffectiveDate: </b> ${OrdinanceEffectiveDate}"
+        );  //popup template: title, content | //Popup Template - format https://developers.arcgis.com/javascript/3/jshelp/intro_formatinfowindow.html
+
+        //Create an empty feature collection:
+        var featureCollection = {
+          "layerDefinition": null,
+          "featureSet": {
+            "features": [],
+            "geometryType": "esriGeometryPolygon"
+          }
+        };
+
+        //Give feature collection a layer definition:
+        featureCollection.layerDefinition = {
+          "geometryType": "esriGeometryPolygon",
+          //"objectIdField": "ID",
+          "drawingInfo": {
+            "renderer": {
+              "type": "simple",
+              "symbol": {
+                "type": "esriSFS",
+                "style": "esriSFSSolid",
+                "color": [
+                  31,
+                  121,
+                  180,
+                  255
+                ],
+                "outline": {
+                  "type": "esriSLS",
+                  "style": "esriSLSSolid",
+                  "color": [0, 0, 0, 255],
+                  width: 2.4
+                }
+              }
+            }
+          },
+          "fields": [{
+            "name": "ID",
+            "type": "esriFieldTypeOID",
+            "alias": "ID"
+          },
+          {
+            "name": "RecordNumber",
+            "type": "esriFieldTypeString",
+            "alias": "RecordNumber",
+            "length": 10
+          }
+          ]
+        };
+
+        featureLayer = new FeatureLayer(featureCollection, {
+          id: 'polygonFeatureLayer',
+          spatialReference: {
+            wkid: 4326
+          },
+          mode: FeatureLayer.MODE_ONDEMAND,
+          infoTemplate: template,
+          opacity: 0.25
+        });
+
+        map.addLayers([featureLayer]);  //add empty feature layer to map
+
+        function requestData() {  //Query CivicData json
+          var requestHandle = esriRequest({
+            //url: "data/LongRange_TestRecords.json"
+            //url: "data/LongRange_TestRecords_TEST.json"
+            //url: "data/LongRange_TestRecords_MultiPoly.json"
+            url: "data/LongRange_TestRecords_Donut.json"
+          });
+          requestHandle.then(requestSucceeded, requestFailed);
+        }
+
+        function requestSucceeded(response) {
+          var features = [];
+
+          array.forEach(response, function (item) {
+            //CSV to json: http://www.convertcsv.com/csv-to-json.htm
+            // Single Polygon: [[ [x,y], [x,y], [x,y], [x,y] ]]
+            // MultiPolygon: [ [ [x,y], [x,y], [x,y], [x,y] ] , [ [x,y], [x,y], [x,y], [x,y] ] ] 
+            var recordPolygon = JSON.parse(JSON.stringify(item.Coordinates)); //Use JSON.parse to create object, JSON.stringify to read as string and keep outside []
+
+            var attr = {};  //Update template with polygon attributes
+            attr["RecordNumber"] = item.RecordNumber;
+            attr["ApplicationDate"] = item.ApplicationDate;
+            attr["RecordStatus"] = item.RecordStatus;
+            attr["Applicant"] = item.Applicant;
+            attr["ProjectName"] = item.ProjectName;
+            attr["Description"] = item.Description;
+            attr["AmendmentType"] = item.AmendmentType;
+            attr["PrivatePublic"] = item.PrivatePublic;
+            attr["PlanningPage"] = item.PlanningPage;
+            attr["ACAPage"] = item.ACAPage;
+            attr["OridinanceNumber"] = item.OridinanceNumber;
+            attr["ExpectedCompletionDate"] = item.ExpectedCompletionDate;
+            attr["OrdinanceEffectiveDate"] = item.OrdinanceEffectiveDate;
+
+            var geometry = new Polygon({
+              rings: recordPolygon
+              //rings: [[[-122.495607, 47.240310],[-122.498418, 47.240434],[-122.498428, 47.239224],[-122.495467, 47.239297],[-122.495607, 47.240310]]]  //works - single polygon
+              //rings: [[[-122.4971048061631,47.244637599727604],[-122.49646100894783,47.24388059411121],[-122.49774860337835,47.24388059411121],[-122.4971048061631,47.244637599727604]], [[-122.50028054163646,47.24459907557974],[-122.49972305496168,47.24394355791589],[-122.50083802831125,47.24394355791589],[-122.50028054163646,47.24459907557974]]]  //works - multipolygon
+              //rings: [[[[-122.4971048061631,47.244637599727604],[-122.49646100894783,47.24388059411121],[-122.49774860337835,47.24388059411121],[-122.4971048061631,47.244637599727604]]], [[[-122.50028054163646,47.24459907557974],[-122.49972305496168,47.24394355791589],[-122.50083802831125,47.24394355791589],[-122.50028054163646,47.24459907557974]]]]  //Error: <path> attribute d: Expected moveto path command ('M' or 'm'), "ZZ".
+            });
+            //console.error('geometry: ', geometry);
+
+            var graphic = new Graphic(geometry);
+            graphic.setAttributes(attr);
+            features.push(graphic);
+            //}  //TEST FOR POLYGON, REMOVE ONCE WORKING!!!!
+
+          });
+
+          featureLayer.applyEdits(features, null, null);  //Update map with new feature layer items
+        }
+
+        function requestFailed(error) {
+          console.log('Failed: ', error);
+        }
+
+        map.addLayers([featureLayer]);  //empty feature layer
+        on.once(map, 'layer-add-result', requestData);  //call just once after feature layer added to map
+      });
+  </script>
+</head>
+
+<body class='claro'>
+  <div id="map"></div>
+</body>
+
+</html>

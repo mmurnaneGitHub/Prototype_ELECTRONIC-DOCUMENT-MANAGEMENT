@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+
+  <meta name="viewport" content="initial-scale=1, maximum-scale=1,user-scalable=no">
+  <title>Shapes and Symbols</title>
+
+  <link rel="stylesheet" href="https://js.arcgis.com/3.28/esri/css/esri.css">
+
+  <style>
+    html,
+    body,
+    #map {
+      padding: 0;
+      margin: 0;
+      height: 100%;
+    }
+  </style>
+
+  <script src="https://js.arcgis.com/3.28/"></script>
+  <script>
+    //var map;
+    require([
+      "esri/map",
+      "esri/graphic",
+      "esri/symbols/SimpleFillSymbol",
+      'esri/layers/FeatureLayer',
+      "esri/geometry/Polygon",
+      "esri/layers/GraphicsLayer",
+      "esri/request",
+      'esri/InfoTemplate',
+      'dojo/_base/array',
+      'dojo/_base/lang',
+      "dojo/domReady!"
+    ], function (Map, Graphic, SimpleFillSymbol,
+    FeatureLayer, 
+      Polygon, GraphicsLayer, esriRequest, InfoTemplate, array, lang) {
+
+        map = new Map("map", {
+          basemap: "gray",
+          center: [-122.497430, 47.238774],
+          zoom: 15
+        });
+        //var graphicLayer = new GraphicsLayer();
+        graphicLayer = new GraphicsLayer();
+        map.addLayer(graphicLayer);  //add empty graphic layer to map
+
+        //--TEST--------------------------------------------------------
+        //https://developers.arcgis.com/javascript/3/jssamples/fl_featureCollection.html
+        //Popup Template - format https://developers.arcgis.com/javascript/3/jshelp/intro_formatinfowindow.html
+        var template = new InfoTemplate("Record Number ${RecordNumber}",
+          "<b>ID:</b> ${ID}" +
+          "<br> <b>ApplicationDate: </b> ${ApplicationDate}");  //popup template: title, content
+        //Create feature collection for data
+        var featureCollection = {
+          "layerDefinition": { "geometryType": "esriGeometryPolygon", "objectIdField": "ObjectID", "fields": [] },
+          "featureSet": { "features": [], "geometryType": "esriGeometryPolygon" }
+        };
+
+        //All Permits - create feature layer based on the feature collection ---------------------------
+        featureLayer = new FeatureLayer(featureCollection, {
+          infoTemplate: template
+        });
+
+        featureLayer.title = 'Permits';  //Legend title          
+        //featureLayer.setRenderer(renderer);  //Symbol - needs to be done after layer creation
+        this.map.addLayers([featureLayer]);  //add the feature layer to the map
+
+
+        //----------------------------------------------------------
+
+        //Query CivicData json
+        var requestHandle = esriRequest({
+          "url": "data/LongRange_TestRecords.json"
+        });
+        requestHandle.then(requestSucceeded, requestFailed);
+
+        /* */
+        var theCoordinates = [[-122.494442, 47.242775], [-122.498401, 47.242826], [-122.498423, 47.240174], [-122.496674, 47.240160], [-122.496760, 47.241238], [-122.494131, 47.241296], [-122.494442, 47.242775]];
+        //var theCoordinates = [[-122.497012, 47.246443],[-122.496401, 47.244687],[-122.494341, 47.244651],[-122.494330, 47.246421],[-122.497012, 47.246443]];
+        //var theCoordinates = [[-122.495607, 47.240310],[-122.498418, 47.240434],[-122.498428, 47.239224],[-122.495467, 47.239297],[-122.495607, 47.240310]];
+        var thePolygon = new Polygon(theCoordinates);
+        var thePolygonGraphic = new Graphic(thePolygon, new SimpleFillSymbol());
+
+        graphicLayer.add(thePolygonGraphic);  //add element to graphic layer
+
+        //console.error(map);
+        /* */
+
+        function requestSucceeded(response) {
+
+          //loop through the items and add to the feature layer
+        var features = [];
+
+          array.forEach(response, function (item) {  //loop through the items (SELECTED RECORDS) and add to the feature layer
+            var theCoordinates = item.Coordinates;
+            var thePolygon = new Polygon(theCoordinates);
+            var thePolygonGraphic = new Graphic(thePolygon, new SimpleFillSymbol());
+
+            //graphicLayer.add(thePolygonGraphic);  //add element to graphic layer
+            //this.graphicLayer.add(thePolygonGraphic);  //add element to graphic layer - in layer but not map
+            //console.error(map)
+          var attr = {};
+          attr["description"] = item.description;
+          attr["title"] = item.title ? item.title : "Flickr Photo";
+
+          //var geometry = new Point(item);
+
+          //var graphic = new Graphic(geometry);
+          //graphic.setAttributes(attr);
+          thePolygonGraphic.setAttributes(attr);
+
+          features.push(thePolygonGraphic);
+
+          });
+          
+          //console.error(map);
+          featureLayer.applyEdits(features, null, null);
+        }
+        function requestFailed(error){
+          console.error('requestFailed: ', error);
+        }
+
+      });
+
+    //SEE https://community.esri.com/message/573328
+
+  </script>
+</head>
+
+<body>
+  <div id="map"></div>
+</body>
+
+</html>

@@ -1,0 +1,36 @@
+[
+ {
+   "ID": "3",
+   "RecordNumber": "LRP19-0003",
+   "ApplicationDate": "5/7/2019",
+   "RecordStatus": "Complete Application",
+   "Applicant": "Public Works Department",
+   "ProjectName": "Transportation Master Plan Amendments",
+   "Description": "A huge description that makes a ton of sense",
+   "AmendmentType": "Area-wide Zoning Reclassification",
+   "PrivatePublic": "Private",
+   "PlanningPage": "https://cms.cityoftacoma.org/Planning/2020%20Amendment/2020%20Amendment%20Assessment%20-%20TMP%20(6-4-19).pdf",
+   "ACAPage": "https://aca.accela.com/tacoma/Default.aspx",
+   "OridinanceNumber": "2",
+   "ExpectedCompletionDate": "",
+   "OrdinanceEffectiveDate": "6/12/2019",
+   "Coordinates": [[[-122.495607, 47.240310],[-122.498418, 47.240434],[-122.498428, 47.239224],[-122.495467, 47.239297],[-122.495607, 47.240310]]]
+ },
+ {
+   "ID": "4",
+   "RecordNumber": "MultiPolygon Test",
+   "ApplicationDate": "5/7/2019",
+   "RecordStatus": "Complete Application",
+   "Applicant": "Public Works Department",
+   "ProjectName": "Transportation Master Plan Amendments",
+   "Description": "A huge description that makes a ton of sense",
+   "AmendmentType": "Area-wide Zoning Reclassification",
+   "PrivatePublic": "Private",
+   "PlanningPage": "https://cms.cityoftacoma.org/Planning/2020%20Amendment/2020%20Amendment%20Assessment%20-%20TMP%20(6-4-19).pdf",
+   "ACAPage": "https://aca.accela.com/tacoma/Default.aspx",
+   "OridinanceNumber": "2",
+   "ExpectedCompletionDate": "",
+   "OrdinanceEffectiveDate": "6/12/2019",
+   "Coordinates": [[[[-122.4971048061631,47.244637599727604],[-122.49646100894783,47.24388059411121],[-122.49774860337835,47.24388059411121],[-122.4971048061631,47.244637599727604]]], [[[-122.50028054163646,47.24459907557974],[-122.49972305496168,47.24394355791589],[-122.50083802831125,47.24394355791589],[-122.50028054163646,47.24459907557974]]]]
+ }
+]
